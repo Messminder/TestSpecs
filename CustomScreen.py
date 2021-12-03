@@ -1,14 +1,12 @@
 from rich.panel import Panel
 from rich.align import Align
 from rich.text import Text
-from rich.traceback import install
 from rich.style import Style
 from textual.app import App
 from textual.events import Click
 from textual.reactive import Reactive
 from textual.widget import Widget
 from textual.widgets import Placeholder
-install()
 import os
 import psutil
 import time
