@@ -31,8 +31,11 @@ class OSScreen(Widget):
         return Panel(osinfo, title=OStitleText, title_align="left", border_style="blue")
 
 class HWScreen(Widget):
+   # cpuinfo is quite of a slow module. Perhaps it is the nature of interpreted languages, the fact that textual is a a module in it's infancy, or (most likely) just me being terrible at programming.
+   # What i do know is that the hypothesis of "Does textual play nice with two widgets (or more) that refreshes at the same time?" is "NO" and it was tested with a widget made with rich (Clock(Widget))
+   # live CPU Frequency counter (HWScreen(Widget)) 
     def on_mount(self):
-        self.set_interval(7, self.refresh)
+        self.set_interval(5, self.refresh)
 
 
     def render(self):
@@ -40,20 +43,19 @@ class HWScreen(Widget):
         hwinfo = f"""[bold green]CPU:[/bold green][green] {cpuinfo.get_cpu_info()["brand_raw"]} [/green]
    [bold green]ARCHITECTURE:[/bold green][green] {cpuinfo.get_cpu_info()["arch_string_raw"] + " " + "(" +  str(cpuinfo.get_cpu_info()["bits"]) + "-bits" + ")"} [/green]
    [bold green]VENDOR:[/bold green][green] {cpuinfo.get_cpu_info()["vendor_id_raw"]} [/green]
-   [bold green]FREQUENCY:[/bold green] [green]{cpuinfo.get_cpu_info()["hz_actual_friendly"]}[/green]
-            [bold green]ADVERTISED:[/bold green][green] {cpuinfo.get_cpu_info()["hz_advertised_friendly"]} [/green]
-            [bold green]ACTUAL:[/bold green][green] {str(cpuinfo.get_cpu_info()["hz_actual"]) + " GHz"} [/green]
+   [bold green]FREQUENCY:[/bold green] [green]{cpuinfo.get_cpu_info()["hz_actual_friendly"]}[/green][bold green] (ACTUAL)[/bold green]
 
                   """
 
         return Panel(hwinfo, title=HWtitleText, title_align="left", border_style="blue")
 
 class Clock(Widget):
-    def on_mount(self):
-        self.set_interval(1, self.refresh)
+    #Rip in peace real-time clock
+    #def on_mount(self):
+    #    self.set_interval(1, self.refresh)
 
     def render(self):
-        currentTime = Panel(Text(datetime.now().strftime("%c")))
+        currentTime = Panel(Text(datetime.now().strftime("%c")), title="EXEC TIME")
         return (Align.center(currentTime, vertical="top"))
 
 class Test(App):
