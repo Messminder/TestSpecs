@@ -13,18 +13,25 @@ import time
 import platform
 import distro
 import GPUtil
+import subprocess
 import cpuinfo
 from datetime import datetime
 
 # OS Screen contains software centric system information and returns it wrapped in a panel.
-# TODO -Find a way to get window manager and/or Desktop environment name
 # TODO -Get host name and uptime since boot in a politely readable manner
 # TODO - Correctly identify if using Xorg or Wayland
 class OSScreen(Widget):
     def render(self):
+        # Execute shell command using package "wmctrl" to identify window manager and desktop environment. How this works is currently unknown.
+        desktopsoftwareinfo = subprocess.check_output("wmctrl -m", shell=True, text=True)
+        # Sub string extraction from the returned value of the shell command above, identifying the window manager.
+        wmsubstring = (desktopsoftwareinfo[6:9])
+        # Window title
         OStitleText = "[bold cyan]OPERATING SYSTEM[/bold cyan]"
+        #The text inside
         osinfo = f"""[bold green]KERNEL:[/bold green][green] {platform.system()} release {platform.release()} [/green]
 [bold green]DISTRIBUTION:[/bold green][green] {distro.name() + " " + "GNU/" + platform.system()}[/green]
+[bold green]WINDOW MANAGER:[/bold green][green] {wmsubstring} [/green]
 
                  """
 
@@ -35,11 +42,13 @@ class OSScreen(Widget):
 # TODO -Hard drive info
 
 class HWScreen(Widget):
-   # cpuinfo is quite of a slow module. Perhaps it is the nature of interpreted languages, the fact that textual is a module in it's infancy, or (most likely) just me being terrible at programming.
-   # What i do know is that the hypothesis of "Does textual play nice with two widgets (or more) that refreshes at the same time?" is "NO" and it was tested with a widget made with rich (Clock(Widget))
+   # cpuinfo is quite of a slow module. Perhaps it is the nature of interpreted languages, the fact that textual is a module in it's infancy, or (most likely) just me being terrible at programming. Or maybe because i'm coding on an old HP Compaq with a grand max of 2.50GHz processing which doesn't help python or whatsoever.
+   # What i do know is that the hypothesis of "Does textual play nice with two widgets (or more) that refreshes at the same time?" is "NO" (or at least seems to be) and it was tested with a widget made with rich (Clock(Widget))
    # and a live CPU Frequency counter (HWScreen(Widget)) being this one. 
-    def on_mount(self):
-        self.set_interval(5, self.refresh)
+   #For now, we will disable refresh
+
+   # def on_mount(self):
+   #     self.set_interval(5, self.refresh)
 
    # render stuff like text here.
     def render(self):
