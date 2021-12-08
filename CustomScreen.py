@@ -9,6 +9,7 @@ from textual.widget import Widget
 from textual.widgets import Placeholder
 import os
 import psutil
+from psutil._common import bytes2human
 import time
 import platform
 import distro
@@ -19,19 +20,24 @@ from datetime import datetime
 
 # OS Screen contains software centric system information and returns it wrapped in a panel.
 # TODO -Get host name and uptime since boot in a politely readable manner
-# TODO - Correctly identify if using Xorg or Wayland
 class OSScreen(Widget):
     def render(self):
         # Execute shell command using package "wmctrl" to identify window manager and desktop environment. How this works is currently unknown.
         desktopsoftwareinfo = subprocess.check_output("wmctrl -m", shell=True, text=True)
-        # Sub string extraction from the returned value of the shell command above, identifying the window manager.
+        # Sub string extraction from the returned value of the shell command above, identifying my own window manager.
         wmsubstring = (desktopsoftwareinfo[6:9])
         # Window title
         OStitleText = "[bold cyan]OPERATING SYSTEM[/bold cyan]"
-        #The text inside
+        # Computer uptime
+        uptime = str(datetime.now() - datetime.fromtimestamp(psutil.boot_time()))
+        # Computer uptime cutted string
+        cutteduptime = (uptime[0:14])
+        # The text inside
         osinfo = f"""[bold green]KERNEL:[/bold green][green] {platform.system()} release {platform.release()} [/green]
 [bold green]DISTRIBUTION:[/bold green][green] {distro.name() + " " + "GNU/" + platform.system()}[/green]
-[bold green]WINDOW MANAGER:[/bold green][green] {wmsubstring} [/green]
+[bold green]WINDOW MANAGER:[/bold green][green] {wmsubstring}[/green]
+[bold green]USER LOGIN:[/bold green][green] {platform.node()}[/green]
+[bold green]UPTIME:[/bold green][green] {cutteduptime}[/green]
 
                  """
 
@@ -39,13 +45,13 @@ class OSScreen(Widget):
 
 
 # HW Screen contains Hardware information and specifications.
-# TODO -Hard drive info
+# All TODO completed
 
 class HWScreen(Widget):
    # cpuinfo is quite of a slow module. Perhaps it is the nature of interpreted languages, the fact that textual is a module in it's infancy, or (most likely) just me being terrible at programming. Or maybe because i'm coding on an old HP Compaq with a grand max of 2.50GHz processing which doesn't help python or whatsoever.
    # What i do know is that the hypothesis of "Does textual play nice with two widgets (or more) that refreshes at the same time?" is "NO" (or at least seems to be) and it was tested with a widget made with rich (Clock(Widget))
    # and a live CPU Frequency counter (HWScreen(Widget)) being this one. 
-   #For now, we will disable refresh
+   # For now, we will disable refresh
 
    # def on_mount(self):
    #     self.set_interval(5, self.refresh)
@@ -57,6 +63,15 @@ class HWScreen(Widget):
    [bold green]ARCHITECTURE:[/bold green][green] {cpuinfo.get_cpu_info()["arch_string_raw"] + " " + "(" +  str(cpuinfo.get_cpu_info()["bits"]) + "-bits" + ")"} [/green]
    [bold green]VENDOR:[/bold green][green] {cpuinfo.get_cpu_info()["vendor_id_raw"]} [/green]
    [bold green]FREQUENCY:[/bold green] [green]{cpuinfo.get_cpu_info()["hz_actual_friendly"]}[/green][bold green] (ACTUAL)[/bold green]
+[bold green]MEMORY:[/bold green]
+      [bold green]RAM:[/bold green]
+          [green]TOTAL: {bytes2human(psutil.virtual_memory().total)}[/green]
+          [green]USED: {bytes2human(psutil.virtual_memory().used) + " (" + str(psutil.virtual_memory().percent) + "%)"}[/green]
+          [green]AVAIALBLE: {bytes2human(psutil.virtual_memory().available)}[/green]
+       [bold green]HDD:[/bold green]
+          [green]TOTAL: {bytes2human(psutil.disk_usage("/").total)}[/green]
+          [green]USED: {bytes2human(psutil.disk_usage("/").used) + " (" + str(psutil.disk_usage("/").percent) + "%)"}[/green]
+          [green]AVAILABLE: {bytes2human(psutil.disk_usage("/").free)}[/green]
 
                   """
         # Return the results wrapped around a Panel, creating a beautiful window in your terminal.
