@@ -18,5 +18,5 @@ Dependencies for now(Shell):
  >textual
  >psutil
  >distro
- >cpuinfo
+ >py-cpuinfo
 
