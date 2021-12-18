@@ -15,8 +15,9 @@ import subprocess
 import cpuinfo
 from datetime import datetime
 
-class getWM:
-    def detWM(self):
+class OSsoftware:
+    
+    def DetermineWM(self):
       # Execute shell command using package "wmctrl" to identify window manager and desktop environment. How this works is currently unknown.
       WMdata = subprocess.check_output("wmctrl -m", shell=True, text=True)
       WMname = ""
@@ -26,27 +27,34 @@ class getWM:
       if "Name : dwm" in WMdata:
         WMname = "DWM"
       
+      elif "Name: N/A" in WMdata:
+        WMname = "[red]Unable to determine WM[/red]"
+      
       return WMname
-
-class getDS:
-  def detDS(self):
-    DSdata = subprocess.check_output("loginctl show-session 1 -p Type",shell=True, text=True)
-    DSname = ""
+      
+    # Function that determines the Display Server. Either Xorg or Wayland.  
+    def DetermineDS(self):
+      DSdata = subprocess.check_output("loginctl show-session 1 -p Type",shell=True, text=True)
+      DSname = ""
     
-    if "Type=x11" in DSdata:
-      DSname = "Xorg"
-    if "Type=wayland" in DSdata:
-      DSname = "Wayland"
+      if "Type=x11" in DSdata:
+        DSname = "Xorg"
+      if "Type=wayland" in DSdata:
+        DSname = "Wayland" # I have no clue what wayland would return on loginctl so i'll just do it like this for now.
     
-    return DSname
+      elif "Type= " or " " in DSdata:
+        DSName = "[red]No display server detected[/red]"
+    
+      return DSname
+  
 
 # OS Screen contains software centric system information and returns it wrapped in a panel.
 class OSScreen(Widget):
     def render(self):
-        # Received string from the class that gets the Window manager
-        rwmstring = getWM.detWM(self)
-        # Received string from the class that gets the Display server
-        rdsstring = getDS.detDS(self)
+        # Received string from the function that gets the Window manager
+        rwmstring =OSsoftware.DetermineWM(self)
+        # Received string from the function that gets the Display server
+        rdsstring = OSsoftware.DetermineDS(self)
         # Identify Desktop Environment
         desktopenvironmentinfo = subprocess.check_output("echo $XDG_CURRENT_DESKTOP", shell=True, text=True)
         # Window title
@@ -110,7 +118,7 @@ class Clock(Widget):
 
     def render(self):
         # Wrap the current time around a panel. string format time is the all-in-one because bleh.
-        currentTime = Panel(Text(datetime.now().strftime("%c")))
+        currentTime = Panel(Text(datetime.now().strftime("%c")), border_style="cyan")
         return (Align.center(currentTime, vertical="top"))
 
 # App initialization
